@@ -71,4 +71,4 @@ function runEmployee() {
           
         }
       });
-  }
+  } // Can I put functions in mysql to activate after 

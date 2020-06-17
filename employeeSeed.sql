@@ -29,3 +29,22 @@ CREATE TABLE department (
     name VARCHAR(30),
     PRIMARY KEY(id)
 );
+
+SELECT DISTINCT manager.*
+FROM employee
+INNER JOIN employee manager on employee.manager_id = manager.id
+
+USE employeeTracker_db;
+
+CREATE TABLE join1
+SELECT role.id, title, salary, name
+FROM role
+INNER JOIN department ON role.department_id = department.id;
+
+
+
+CREATE TABLE allEmployees
+SELECT employee.id, first_name, last_name, title, name, salary, manager_id 
+FROM employee
+INNER JOIN join2 ON employee.manager_id = join2.id;
+
