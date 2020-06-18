@@ -1,5 +1,5 @@
 const mysql = require("mysql");
-const inqurer = require("inquirer");
+const inquirer = require("inquirer");
 const table = require("console.table")
 
 
@@ -13,12 +13,19 @@ const connection = mysql.createConnection({
     user: "root",
   
     // Your password
-    password: "",
+    password: "Rudim3nts08",
     database: "employeeTracker_db"
   });
+
+  // connect to the mysql server and sql database
+connection.connect(function(err) {
+  if (err) throw err;
+  // run the start function after the connection is made to prompt the user
+  ask();
+});
   
 
-function runEmployee() {
+function ask() {
     inquirer
       .prompt({
         name: "action",
@@ -37,31 +44,31 @@ function runEmployee() {
       .then(function(answer) {
         switch (answer.action) {
         case "View All Employees":
-          allEmployees;
+          employeesAll();
           break;
   
         case "View All Employees By Department":
-          deptEmployees();
+          department();
           break;
   
         case "View All Employees By Manager":
-          rangeSearch();
+          manager();
           break;
   
         case "Add Employee":
-          songSearch();
+          add();
           break;
 
         case "Remove Employee":
-          songSearch();
+          remove();
           break;
 
         case "Update Employee Role":
-          songSearch();
+          updateRole();
            break;
 
         case "Update Employee Manager":
-          songSearch();
+          updateManager();
           break;
             
         case "exit":
@@ -72,6 +79,18 @@ function runEmployee() {
         }
       });
   } 
+  const employeesAll = () => {
+     connection.query(`SELECT employee.id, first_name, last_name, title, dept, salary, manager_id
+     FROM employee
+     INNER JOIN role
+     ON employee.dept_id = role.id
+     INNER JOIN department
+     ON role.department_id = department.id`, (err, res) =>{
+       if (err) throw err;
+      console.table(res);
+      ask();
+    })
+  };
 
   // Need function to say that if user selects VIEW ALL EMPLOYEES, then show table of employees with all values. (id, first_name, last_name, role, department, salary, manager) 
 

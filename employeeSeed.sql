@@ -11,7 +11,7 @@ CREATE TABLE employee (
   role_id INT,
   manager_id INT,
   PRIMARY KEY (id),
-  FOREIGN KEY (role_id) REFERENCES role (id),
+  FOREIGN KEY (role_id) REFERENCES role(id),
   FOREIGN KEY (manager_id) REFERENCES employee(id)
 );
 
@@ -30,23 +30,16 @@ CREATE TABLE department (
     PRIMARY KEY(id)
 );
 
--- SELECT DISTINCT manager.*
--- FROM employee
--- INNER JOIN employee manager on employee.manager_id = manager.id
 
 USE employeeTracker_db;
 
-
--- This syntax joins values from department table to role table
-SELECT role.title, role.salary, department.dept
-FROM role
-INNER JOIN  department
-ON role.id = role.department_id
-
---  This syntax may have to be added in js
--- This syntax joins values role  table w/dept_id to employee table 
-SELECT employee.first_name, employee.last_name, role.title, role.salary
+SELECT employee.id, first_name, last_name, title, dept, salary, manager_id
 FROM employee
 INNER JOIN role
-ON employee.id = role.role_id
-ORDER BY  employee.title
+ON employee.dept_id = role.id
+INNER JOIN department
+ON role.department_id = department.id;
+
+
+
+
