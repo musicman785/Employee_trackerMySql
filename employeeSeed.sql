@@ -26,25 +26,27 @@ CREATE TABLE role (
 
 CREATE TABLE department (
     id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(30),
+    dept VARCHAR(30),
     PRIMARY KEY(id)
 );
 
-SELECT DISTINCT manager.*
-FROM employee
-INNER JOIN employee manager on employee.manager_id = manager.id
+-- SELECT DISTINCT manager.*
+-- FROM employee
+-- INNER JOIN employee manager on employee.manager_id = manager.id
 
 USE employeeTracker_db;
 
-CREATE TABLE join1
-SELECT role.id, title, salary, name
+
+-- This syntax joins values from department table to role table
+SELECT role.title, role.salary, department.dept
 FROM role
-INNER JOIN department ON role.department_id = department.id;
+INNER JOIN  department
+ON role.id = role.department_id
 
-
-
-CREATE TABLE allEmployees
-SELECT employee.id, first_name, last_name, title, name, salary, manager_id 
+--  This syntax may have to be added in js
+-- This syntax joins values role  table w/dept_id to employee table 
+SELECT employee.first_name, employee.last_name, role.title, role.salary
 FROM employee
-INNER JOIN join2 ON employee.manager_id = join2.id;
-
+INNER JOIN role
+ON employee.id = role.role_id
+ORDER BY  employee.title
