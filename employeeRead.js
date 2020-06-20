@@ -25,7 +25,7 @@ connection.connect(err => {
 });
 
 
-function ask() {
+const ask = () => {
   inquirer
     .prompt({
       name: "action",
@@ -79,6 +79,8 @@ function ask() {
       }
     });
 }
+
+// Variable that holds main sql syntax for join database table
 const tableAll = (`SELECT employee.id, first_name, last_name, title, dept, salary, manager_id
 FROM employee
 INNER JOIN role
@@ -86,6 +88,9 @@ ON employee.dept_id = role.id
 INNER JOIN department
 ON role.department_id = department.id`);
 
+
+
+//Function calls all employees with all values
 const employeesAll = () => {
   connection.query(tableAll, (err, res) => {
     if (err) throw err;
@@ -94,6 +99,7 @@ const employeesAll = () => {
   })
 };
 
+// Function to call employees based on department
 const department = () => {
   inquirer.prompt({
     name: "action",
@@ -104,16 +110,90 @@ const department = () => {
       "Finance",
       "Legal",
       "Sales",
-     ]
+    ]
   }).then(response => {
     connection.query(`${tableAll}
     WHERE dept = "${response.action}"`, (err, res) => {
-    console.table(res);
-    ask();
+      console.table(res);
+      ask();
     })
   })
 
 }
+// Function adds new employees to database
+const add = () => {
+  inquirer.prompt([
+    {
+      name: "first",
+      type: "input",
+      message: "Enter employee's first name."
+    },
+    {
+      name: "last",
+      type: "input",
+      message: "Enter empoyee's last name."
+    },
+    {
+      name: "department",
+      type: "list",
+      message: "Choose employee's department",
+      choices: ["Sales", "Engineering", "Finance", "Legal"]
+    },
+    {
+      name: "role",
+      type: "list",
+      message: "Choose employee's role",
+      choices: ["1 Software Engineer", "2 Accountant", "3 Lawyer", "4 Salesperson", "5 Lead Engineer", "6 Legal Team Lead", "7 Sales Lead"]
+    }
+  ]).then(res => {
+    let roleCode = parseInt(res.role.charAt(0));
+    connection.query(
+      "INSERT INTO employee SET ?",
+      {
+        first_name: res.first,
+        last_name: res.last,
+        dept_id: roleCode
+      }, (err, res) => {
+        if (err) throw err
+      }
+    )
+    connection.query(tableAll, (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      ask();
+    })
+  })
+}
+// Function remove employees from database
+const remove = () => {
+  let active = [];
+
+  connection.query(`SELECT first_name, last_name FROM employee`, (err, res) => {
+    res.forEach(element => {
+      active.push(`${element.id} ${element.first_name} ${element.last_name}`);
+    });
+  })
+
+  inquirer.prompt(
+    {
+      name: "remove",
+      type: "list",
+      message: "Who would you like to remove?",
+      choices: active
+    }
+
+  ).then(res => {
+
+    let empID = parseInt(res.remove.charAt(0));
+
+    connection.query(`DELETE  FROM employee WHERE id = ${empID}`, (err, res) => {
+      console.table(response);
+      ask();
+    })
+  })
+}
+
+// dept: res.department
   // Need function to say that if user selects VIEW ALL EMPLOYEES, then show table of employees with all values. (id, first_name, last_name, role, department, salary, manager)
 
    // Need function to say that if user selects VIEW EMPLOYEES BY DEPARTMENT, then ask question about what department, then return list for all employees under selected department
