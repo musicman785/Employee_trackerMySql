@@ -1,7 +1,5 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const table = require("console.table")
-
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -45,6 +43,7 @@ const ask = () => {
       switch (answer.action) {
         case "View All Employees":
           employeesAll();
+
           break;
 
         case "View All Employees By Department":
@@ -84,7 +83,7 @@ const ask = () => {
 const tableAll = (`SELECT employee.id, first_name, last_name, title, dept, salary, manager_id
 FROM employee
 INNER JOIN role
-ON employee.dept_id = role.id
+ON employee.role_id = role.id
 INNER JOIN department
 ON role.department_id = department.id`);
 
@@ -112,11 +111,18 @@ const department = () => {
       "Sales",
     ]
   }).then(response => {
-    connection.query(`${tableAll}
-    WHERE dept = "${response.action}"`, (err, res) => {
-      console.table(res);
-      ask();
-    })
+    if (response.action !== connection.query(`${tableAll} WHERE dept = 
+    "Engineering" AND "Finance" AND "Legal" AND "Sales"`)) {
+      connection.query(`${tableAll}
+      WHERE dept = "${response.action}"`, (err, res) => {
+        console.table(res);
+        ask();
+      })
+     
+      } else {
+        console.table("No Employees");
+        ask();
+    }
   })
 
 }
@@ -143,10 +149,10 @@ const add = () => {
       name: "role",
       type: "list",
       message: "Choose employee's role",
-      choices: ["1 Software Engineer", "2 Accountant", "3 Lawyer", "4 Salesperson", "5 Lead Engineer", "6 Legal Team Lead", "7 Sales Lead"]
+      choices: ["1 Sales Lead", "2 Saleperson", "3 Lead Engineer", "4 Software Engineer", "5 Accountant", "6 Legal Team Lead", "7 Lawyer"]
     }
   ]).then(res => {
-    let roleCode = parseInt(res.role.charAt(0));
+    let roleCode = parseInt(res.role);
     connection.query(
       "INSERT INTO employee SET ?",
       {
@@ -168,30 +174,77 @@ const add = () => {
 const remove = () => {
   let active = [];
 
-  connection.query(`SELECT first_name, last_name FROM employee`, (err, res) => {
+  connection.query(`SELECT  id, first_name, last_name FROM employee`, (err, res) => {
     res.forEach(element => {
       active.push(`${element.id} ${element.first_name} ${element.last_name}`);
     });
-  })
 
-  inquirer.prompt(
-    {
-      name: "remove",
-      type: "list",
-      message: "Who would you like to remove?",
-      choices: active
-    }
+    inquirer.prompt(
+      {
+        name: "remove",
+        type: "list",
+        message: "Who would you like to remove?",
+        choices: active
+      }
 
-  ).then(res => {
+    ).then(response => {
+      console.log(response);
+      let empID = parseInt(response.remove);
 
-    let empID = parseInt(res.remove.charAt(0));
-
-    connection.query(`DELETE  FROM employee WHERE id = ${empID}`, (err, res) => {
-      console.table(response);
-      ask();
+      connection.query(`DELETE FROM employee WHERE id = ${empID}`, (err, res) => {
+        console.table(response);
+        ask();
+      })
     })
   })
 }
+
+// Update Employee Role
+
+const updateRole = () => {
+  const employees = [];
+
+  connection.query(`SELECT  id, first_name, last_name FROM employee`, (err, res) => {
+    res.forEach(element => {
+      employees.push(`${element.id} ${element.first_name} ${element.last_name}`);
+    });
+
+    inquirer.prompt([
+      {
+        name: "update",
+        type: "list",
+        message: "Choose employee whose role you woule like to update?",
+        choices: employees
+      },
+      {
+        name: "role",
+        type: "list",
+        message: "Choose employee's role",
+        choices: ["1 Sales Lead", "2 Saleperson", "3 Lead Engineer", "4 Software Engineer", "5 Accountant", "6 Legal Team Lead", "7 Lawyer"]
+      }
+    ]).then(res => {
+      let roleCode = parseInt(res.role);
+      let empID = parseInt(res.update);
+      connection.query(
+        `UPDATE employee SET role_id = ${roleCode} WHERE id = ${empID}`,
+        (err, res) => {
+          if (err) throw err
+        }
+      )
+      connection.query(tableAll, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        ask();
+      })
+    })
+  })
+}
+
+//module exports with functions 
+// self reference FK creating dynamically manager and create a column || did not work
+// manager is not a table should reference employee
+
+
 
 // dept: res.department
   // Need function to say that if user selects VIEW ALL EMPLOYEES, then show table of employees with all values. (id, first_name, last_name, role, department, salary, manager)
