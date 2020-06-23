@@ -41,7 +41,8 @@ const ask = () => {
         "View All Roles",
         "View All Departments",
         "Add Roles",
-        "Add Department"
+        "Add Department",
+        "exit"
       ]
     })
     .then(answer => {
@@ -108,11 +109,17 @@ ON employee.role_id = role.id
 INNER JOIN department
 ON role.department_id = department.id`);
 
+const mgrTable = (`SELECT  e.id, e.first_name, e.last_name, role.title, role.salary , d.dept, 
+CONCAT(m.first_name , (" "),m.last_name) AS Manager
+FROM employee e  
+LEFT JOIN employee m ON m.id = e.manager_id JOIN role   
+JOIN department d ON  role.department_Id = d.id AND e.role_id = role.id`);
+
 
 
 //Function calls all employees with all values
 const employeesAll = () => {
-  connection.query(tableAll, (err, res) => {
+  connection.query(mgrTable, (err, res) => {
     if (err) throw err;
     console.table(res);
     ask();
@@ -136,7 +143,7 @@ const department = () => {
 
     }).then(response => {
 
-      connection.query(`${tableAll}
+      connection.query(`${mgrTable}
       WHERE dept = "${response.action}"`, (err, res) => {
         console.table(res);
         ask();
@@ -157,45 +164,61 @@ const add = () => {
       res.forEach(element => {
         newPosition.push(`${element.id} ${element.title}`);
       })
-      inquirer.prompt([
-        {
-          name: "first",
-          type: "input",
-          message: "Enter employee's first name."
-        },
-        {
-          name: "last",
-          type: "input",
-          message: "Enter empoyee's last name."
-        },
-        {
-          name: "department",
-          type: "list",
-          message: "Choose employee's department",
-          choices: newDept
-        },
-        {
-          name: "role",
-          type: "list",
-          message: "Choose employee's role",
-          choices: newPosition
-        }
-      ]).then(res => {
-        let roleCode = parseInt(res.role);
-        connection.query(
-          "INSERT INTO employee SET ?",
+      let newManager = [];
+      connection.query(`SELECT id, first_name, last_name FROM employee`, (err, res) => {
+        res.forEach(element => {
+          newManager.push(`${element.id} ${element.first_name} ${element.last_name}`)
+
+        })
+
+        inquirer.prompt([
           {
-            first_name: res.first,
-            last_name: res.last,
-            role_id: roleCode
-          }, (err, res) => {
-            if (err) throw err
+            name: "first",
+            type: "input",
+            message: "Enter employee's first name."
+          },
+          {
+            name: "last",
+            type: "input",
+            message: "Enter empoyee's last name."
+          },
+          {
+            name: "department",
+            type: "list",
+            message: "Choose employee's department",
+            choices: newDept
+          },
+          {
+            name: "role",
+            type: "list",
+            message: "Choose employee's role",
+            choices: newPosition
+          },
+          {
+            name: "manager",
+            type: "list",
+            message: "Choose employee's manager",
+            choices: newManager
           }
-        )
-        connection.query(tableAll, (err, res) => {
-          if (err) throw err;
-          console.table(res);
-          ask();
+        ]).then(res => {
+          let roleCode = parseInt(res.role);
+          let mgrCode = parseInt(res.manager)
+          connection.query(
+            "INSERT INTO employee SET ?",
+            {
+              first_name: res.first,
+              last_name: res.last,
+              role_id: roleCode,
+              manager_id: mgrCode
+            }, (err, res) => {
+              if (err) throw err
+            }
+          )
+          connection.query(mgrTable, (err, res) => {
+            if (err) throw err;
+            console.table(res);
+            ask();
+          })
         })
       })
     })
@@ -267,7 +290,7 @@ const updateRole = () => {
             if (err) throw err
           }
         )
-        connection.query(tableAll, (err, res) => {
+        connection.query(mgrTable, (err, res) => {
           if (err) throw err;
           console.table(res);
           ask();
@@ -389,19 +412,6 @@ const createRole = () => {
   })
 }
 
-//module exports with functions 
-// self reference FK creating dynamically manager and create a column || did not work
-// manager is not a table should reference employee
 
 
 
-// dept: res.department
-  // Need function to say that if user selects VIEW ALL EMPLOYEES, then show table of employees with all values. (id, first_name, last_name, role, department, salary, manager)
-
-   // Need function to say that if user selects VIEW EMPLOYEES BY DEPARTMENT, then ask question about what department, then return list for all employees under selected department
-
-   // Need function to say that if user selects VIEW EMPLOYEES BY MANAGER, then ask question to select manager_id, then return list for all employees under selected manager_id
-
-  // if not then restart the question of "What would you like to Do?"
-
-  // Need a function to say if the user wants to ADD NEW EMPLOYEE, then prompt question for first_name, last_namt, role, department, salary, and manager, then add the new employee to the employee table. 
