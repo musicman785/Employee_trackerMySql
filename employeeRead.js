@@ -42,6 +42,7 @@ const ask = () => {
         "View All Departments",
         "Add Roles",
         "Add Department",
+        "View Department Budget",
         "exit"
       ]
     })
@@ -91,6 +92,11 @@ const ask = () => {
         case "Add Roles":
           addRoles();
           break;
+
+        case "View Department Budget":
+          budgetView();
+          break;
+        
 
         case "exit":
           connection.end();
@@ -416,21 +422,94 @@ const manager = () => {
       manager.push(element.manager);
     })
 
-  inquirer
-      .prompt (      
+    inquirer
+      .prompt(
+        {
+          name: "manager",
+          type: "list",
+          message: "Which Manager Staff Would You Like To View?",
+          choices: manager
+        }
+      ).then(response => {
+        connection.query(`SELECT * FROM (${mgrTable}) AS managerSubTable WHERE manager = "${response.manager}"`, (err, res) => {
+          if (err) throw err;
+          console.table(res);
+          ask();
+        })
+      })
+  })
+};
+
+const updateManager = () => {
+  const employees = [];
+
+  connection.query(`SELECT  id, first_name, last_name FROM employee`, (err, res) => {
+    res.forEach(element => {
+      employees.push(`${element.id} ${element.first_name} ${element.last_name}`);
+    });
+
+    inquirer.prompt([
+      {
+        name: "update",
+        type: "list",
+        message: "Choose employee whose manager you woule like to update?",
+        choices: employees
+      },
       {
         name: "manager",
         type: "list",
-        message: "Which Manager Staff Would You Like To View?",
-        choices: manager
+        message: "Choose Employee's Manager",
+        choices: employees
       }
-    ).then(response => {
-      connection.query(`SELECT * FROM (${mgrTable}) AS managerSubTable WHERE manager = "${response.manager}"`, (err, res) =>{
+    ]).then(res => {
+      let mgrCode = parseInt(res.manager);
+      let empID = parseInt(res.update);
+      connection.query(
+        `UPDATE employee SET manager_id = ${mgrCode} WHERE id = ${empID}`,
+        (err, res) => {
+          if (err) throw err
+        }
+      )
+      connection.query(mgrTable, (err, res) => {
         if (err) throw err;
         console.table(res);
         ask();
       })
     })
   })
-};
+}
+
+const budgetView = () => {
+  let dept = [];
+  
+  connection.query("SELECT * FROM department", (err, res) => {
+    res.forEach(element => {
+      dept.push(element.dept);
+    })
+
+  inquirer 
+    .prompt (
+      {
+        name: "department",
+        type: "list",
+        message: "Which Department Budget Would You Like To View?",
+        choices: dept
+      }
+    ).then(response => {
+
+    connection.query(`SELECT salary FROM (${mgrTable}) AS managerSubTable WHERE dept = "${response.department}"`, (err, res) => {
+      if (err) throw err;
+      let sum = 0;
+      res.forEach(element => {
+        sum += element.salary;
+      });
+      connection.query(`SELECT dept FROM department WHERE dept = "${response.department}"`, (err, res) => {
+        console.table(res)
+        console.log(`Sum: ${sum}!`);
+        ask();
+      })
+    } )
+    })
+  })
+}
 
