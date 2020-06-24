@@ -109,11 +109,7 @@ ON employee.role_id = role.id
 INNER JOIN department
 ON role.department_id = department.id`);
 
-const mgrTable = (`SELECT  e.id, e.first_name, e.last_name, role.title, role.salary , d.dept, 
-CONCAT(m.first_name , (" "),m.last_name) AS Manager
-FROM employee e  
-LEFT JOIN employee m ON m.id = e.manager_id JOIN role   
-JOIN department d ON  role.department_Id = d.id AND e.role_id = role.id`);
+const mgrTable = `SELECT  e.id, e.first_name, e.last_name, role.title, role.salary, d.dept, CONCAT(m.first_name , (" "),m.last_name) AS manager FROM employee e LEFT JOIN employee m ON m.id = e.manager_id JOIN role JOIN department d ON  role.department_Id = d.id AND e.role_id = role.id`;
 
 
 
@@ -138,7 +134,7 @@ const department = () => {
 
       name: "action",
       type: "list",
-      message: "What would you like to do?",
+      message: "Which Department Would You Like To View?",
       choices: dept
 
     }).then(response => {
@@ -365,6 +361,7 @@ const addRoles = () => {
 
   })
 };
+
 const createRole = () => {
   let newRoleDept = [];
   connection.query("SELECT * FROM department", (err, res) => {
@@ -412,6 +409,28 @@ const createRole = () => {
   })
 }
 
+const manager = () => {
+  let manager = [];
+  connection.query(`SELECT * FROM (${mgrTable}) AS managerSubTable WHERE manager IS NOT NULL`, (err, res) => {
+    res.forEach(element => {
+      manager.push(element.manager);
+    })
 
-
+  inquirer
+      .prompt (      
+      {
+        name: "manager",
+        type: "list",
+        message: "Which Manager Staff Would You Like To View?",
+        choices: manager
+      }
+    ).then(response => {
+      connection.query(`SELECT * FROM (${mgrTable}) AS managerSubTable WHERE manager = "${response.manager}"`, (err, res) =>{
+        if (err) throw err;
+        console.table(res);
+        ask();
+      })
+    })
+  })
+};
 
