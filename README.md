@@ -28,7 +28,7 @@ Create command-line application that dynamically generates an employee database 
   
 
 ### Example giffy: 
- ![]()
+ ![](/assets/images/appGiphy.gif)
 
 ## Acknowledgements
 

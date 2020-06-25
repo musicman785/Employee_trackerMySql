@@ -421,6 +421,9 @@ const manager = () => {
     res.forEach(element => {
       manager.push(element.manager);
     })
+    let unique = [...new Set(manager)];
+    // console.log(unique);
+    
 
     inquirer
       .prompt(
@@ -428,7 +431,7 @@ const manager = () => {
           name: "manager",
           type: "list",
           message: "Which Manager Staff Would You Like To View?",
-          choices: manager
+          choices: unique
         }
       ).then(response => {
         connection.query(`SELECT * FROM (${mgrTable}) AS managerSubTable WHERE manager = "${response.manager}"`, (err, res) => {
