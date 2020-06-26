@@ -4,6 +4,8 @@
 
 ![GitHub top language](https://img.shields.io/github/languages/top/musicman785/Employee_trackerMySql?color=%230f0&logo=github&logoColor=%23f00)
 
+![GitHub language count](https://img.shields.io/github/languages/count/musicman785/Employee_trackerMySql?color=%23f0f&logo=github&logoColor=%23f0f)
+
   
 Create command-line application that dynamically generates an employee database based on user input. User will be prompted to enter names, roles, and departments for new employees as well as update current employee"s roles or departments or delete employees.
 

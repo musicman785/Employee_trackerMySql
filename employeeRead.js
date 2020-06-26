@@ -1,29 +1,29 @@
+//Makes changes within node.js to database
 const mysql = require("mysql");
+// allows for user prompt questions
 const inquirer = require("inquirer");
+// module for questions
 const { createPromptModule } = require("inquirer");
-
+//establishes connection to mysql
 const connection = mysql.createConnection({
   host: "localhost",
 
-  // Your port; if not 3306
   port: 3306,
 
-  // Your username
   user: "root",
-
-  // Your password
   password: "Rudim3nts08",
+  //Database name
   database: "employeeTracker_db"
 });
 
-// connect to the mysql server and sql database
+// connects mysql server and sql database
 connection.connect(err => {
   if (err) throw err;
   // run the start function after the connection is made to prompt the user
   ask();
 });
 
-
+// Begin user questions
 const ask = () => {
   inquirer
     .prompt({
@@ -45,12 +45,11 @@ const ask = () => {
         "View Department Budget",
         "exit"
       ]
-    })
+    }) // answer allocated to proper function
     .then(answer => {
       switch (answer.action) {
         case "View All Employees":
           employeesAll();
-
           break;
 
         case "View All Employees By Department":
@@ -107,7 +106,7 @@ const ask = () => {
     });
 }
 
-// Variable that holds main sql syntax for join database table
+// Variable that holds main sql syntax for join database table w/o manager name
 const tableAll = (`SELECT employee.id, first_name, last_name, title, dept, salary, manager_id
 FROM employee
 INNER JOIN role
@@ -115,6 +114,7 @@ ON employee.role_id = role.id
 INNER JOIN department
 ON role.department_id = department.id`);
 
+// Variable that holds main sql syntax for join database table
 const mgrTable = `SELECT  e.id, e.first_name, e.last_name, role.title, role.salary, d.dept, CONCAT(m.first_name , (" "),m.last_name) AS manager FROM employee e LEFT JOIN employee m ON m.id = e.manager_id JOIN role JOIN department d ON  role.department_Id = d.id AND e.role_id = role.id`;
 
 
@@ -172,7 +172,7 @@ const add = () => {
           newManager.push(`${element.id} ${element.first_name} ${element.last_name}`)
 
         })
-
+        // user questions to input new employee information
         inquirer.prompt([
           {
             name: "first",
@@ -203,6 +203,7 @@ const add = () => {
             choices: newManager
           }
         ]).then(res => {
+          //response parsed to acquire int values from database
           let roleCode = parseInt(res.role);
           let mgrCode = parseInt(res.manager)
           connection.query(
@@ -284,6 +285,7 @@ const updateRole = () => {
           choices: newPosition
         }
       ]).then(res => {
+         //response parsed to acquire int values from database
         let roleCode = parseInt(res.role);
         let empID = parseInt(res.update);
         connection.query(
@@ -367,7 +369,7 @@ const addRoles = () => {
 
   })
 };
-
+//User can add new Employee Roles
 const createRole = () => {
   let newRoleDept = [];
   connection.query("SELECT * FROM department", (err, res) => {
@@ -414,7 +416,7 @@ const createRole = () => {
       })
   })
 }
-
+// Allows User to view all employees that have the same manager
 const manager = () => {
   let manager = [];
   connection.query(`SELECT * FROM (${mgrTable}) AS managerSubTable WHERE manager IS NOT NULL`, (err, res) => {
@@ -442,7 +444,7 @@ const manager = () => {
       })
   })
 };
-
+//Allows user to change an employees manager 
 const updateManager = () => {
   const employees = [];
 
@@ -481,7 +483,7 @@ const updateManager = () => {
     })
   })
 }
-
+// Allows user to view budgets based on departments
 const budgetView = () => {
   let dept = [];
   
